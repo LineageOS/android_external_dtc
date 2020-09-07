@@ -148,6 +148,7 @@ BIN += fdtdump
 BIN += fdtget
 BIN += fdtput
 BIN += fdtoverlay
+BIN += fdtoverlaymerge
 
 SCRIPTS = dtdiff
 
@@ -266,6 +267,8 @@ fdtget:	$(FDTGET_OBJS) $(LIBFDT_lib)
 fdtput:	$(FDTPUT_OBJS) $(LIBFDT_lib)
 
 fdtoverlay: $(FDTOVERLAY_OBJS) $(LIBFDT_lib)
+
+fdtoverlaymerge: $(FDTOVERLAYMERGE_OBJS) $(LIBFDT_archive)
 
 dist:
 	git archive --format=tar --prefix=dtc-$(dtc_version)/ HEAD \
