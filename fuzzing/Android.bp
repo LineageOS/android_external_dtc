@@ -20,20 +20,3 @@ cc_fuzz {
     host_supported: true,
 }
 
-
-cc_afl_fuzz {
-    name: "afl_libfdt_fuzzer",
-    srcs: [
-        "libfdt_fuzzer.c",
-    ],
-    static_libs: [
-      "libfdt",
-    ],
-    corpus: ["corpus/*"],
-    fuzz_config: {
-        cc: [
-            "mikemcternan@google.com",
-        ],
-    },
-    host_supported: true,
-}
