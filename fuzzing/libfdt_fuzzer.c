@@ -62,6 +62,8 @@ static void walk_node_properties(const void *device_tree, int node) {
   fdt_for_each_property_offset(property, device_tree, node) {
     const struct fdt_property *prop = fdt_get_property_by_offset(device_tree,
                                                                  property, &len);
+    if (!prop)
+      continue;
     check_mem(prop->data, fdt32_to_cpu(prop->len));
   }
 }
