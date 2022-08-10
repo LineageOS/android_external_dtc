@@ -22,6 +22,10 @@ int32_t fdt_ro_probe_(const void *fdt)
 	if (can_assume(VALID_DTB))
 		return totalsize;
 
+	/* The device tree must be at an 8-byte aligned address */
+	if ((uintptr_t)fdt & 7)
+		return -FDT_ERR_ALIGNMENT;
+
 	if (fdt_magic(fdt) == FDT_MAGIC) {
 		/* Complete tree */
 		if (!can_assume(LATEST)) {
@@ -85,6 +89,10 @@ size_t fdt_header_size(const void *fdt)
 int fdt_check_header(const void *fdt)
 {
 	size_t hdrsize;
+
+	/* The device tree must be at an 8-byte aligned address */
+	if ((uintptr_t)fdt & 7)
+		return -FDT_ERR_ALIGNMENT;
 
 	if (fdt_magic(fdt) != FDT_MAGIC)
 		return -FDT_ERR_BADMAGIC;
@@ -219,10 +227,11 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
 
 int fdt_check_node_offset_(const void *fdt, int offset)
 {
-	if (can_assume(VALID_INPUT))
-		return offset;
-	if ((offset < 0) || (offset % FDT_TAGSIZE)
-	    || (fdt_next_tag(fdt, offset, &offset) != FDT_BEGIN_NODE))
+	if (!can_assume(VALID_INPUT)
+	    && ((offset < 0) || (offset % FDT_TAGSIZE)))
+		return -FDT_ERR_BADOFFSET;
+
+	if (fdt_next_tag(fdt, offset, &offset) != FDT_BEGIN_NODE)
 		return -FDT_ERR_BADOFFSET;
 
 	return offset;
@@ -230,8 +239,11 @@ int fdt_check_node_offset_(const void *fdt, int offset)
 
 int fdt_check_prop_offset_(const void *fdt, int offset)
 {
-	if ((offset < 0) || (offset % FDT_TAGSIZE)
-	    || (fdt_next_tag(fdt, offset, &offset) != FDT_PROP))
+	if (!can_assume(VALID_INPUT)
+	    && ((offset < 0) || (offset % FDT_TAGSIZE)))
+		return -FDT_ERR_BADOFFSET;
+
+	if (fdt_next_tag(fdt, offset, &offset) != FDT_PROP)
 		return -FDT_ERR_BADOFFSET;
 
 	return offset;
@@ -319,9 +331,12 @@ const char *fdt_find_string_(const char *strtab, int tabsize, const char *s)
 
 int fdt_move(const void *fdt, void *buf, int bufsize)
 {
+	if (!can_assume(VALID_INPUT) && bufsize < 0)
+		return -FDT_ERR_NOSPACE;
+
 	FDT_RO_PROBE(fdt);
 
-	if (fdt_totalsize(fdt) > bufsize)
+	if (fdt_totalsize(fdt) > (unsigned int)bufsize)
 		return -FDT_ERR_NOSPACE;
 
 	memmove(buf, fdt, fdt_totalsize(fdt));
