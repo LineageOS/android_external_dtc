@@ -68,6 +68,11 @@ static void walk_node_properties(const void *device_tree, int node) {
     if (!prop)
       continue;
     check_mem(prop->data, fdt32_to_cpu(prop->len));
+
+    const char *prop_name = fdt_string(device_tree, prop->nameoff);
+    if (prop_name != NULL) {
+      check_mem(prop_name, strlen(prop_name));
+    }
   }
 }
 
@@ -85,6 +90,28 @@ static void walk_device_tree(const void *device_tree, int parent_node) {
     assert(node >= 0); // it should at least find parent_node
   }
 
+  char path_buf[64];
+  if(fdt_get_path(device_tree, parent_node, path_buf, sizeof(path_buf)) == 0) {
+    fdt_path_offset(device_tree, path_buf);
+  }
+
+  fdt_parent_offset(device_tree, parent_node);
+
+  // Exercise sub-node search string functions
+  fdt_subnode_offset(device_tree, parent_node, "a");
+  fdt_get_property(device_tree, parent_node, "reg", &len);
+
+  // Check for a stringlist node called 'stringlist' (added to corpus)
+  const int sl_count = fdt_stringlist_count(device_tree,
+                                            parent_node, "stringlist");
+  if (sl_count > 0) {
+    for (int i = 0; i < sl_count; i++) {
+      fdt_stringlist_get(device_tree, parent_node, "stringlist", i, &len);
+    }
+
+    fdt_stringlist_search(device_tree, parent_node, "stringlist", "a");
+  }
+
   walk_node_properties(device_tree, parent_node);
 
   // recursively walk the node's children
@@ -95,40 +122,49 @@ static void walk_device_tree(const void *device_tree, int parent_node) {
 }
 
 
+static void walk_mem_rsv(const void *device_tree) {
+  const int n = fdt_num_mem_rsv(device_tree);
+  uint64_t address, size;
+
+  for (int i = 0; i < n; i++) {
+    fdt_get_mem_rsv(device_tree, i, &address, &size);
+  }
+}
+
+
 // Information on device tree is available in external/dtc/Documentation/
 // folder.
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+  int rc;
+
   // Non-zero return values are reserved for future use.
   if (size < FDT_V17_SIZE) return 0;
 
-  if (fdt_check_full(data, size) != 0) return 0;
+  // Produce coverage of checking function
+  rc = fdt_check_full(data, size);
+  fdt_strerror(rc);
 
+  // Don't continue if the library rejected the input
+  if (rc != 0) return 0;
+
+  // Cover reading functions
   walk_device_tree(data, /* parent_node */ 0);
+  walk_mem_rsv(data);
+
+  // Cover phandle functions
+  uint32_t phandle;
+  fdt_generate_phandle(data, &phandle);
+
+  // Try and get a path by alias
+  fdt_path_offset(data, "a");
+
+  // Try to get an alias
+  fdt_get_alias(data, "a");
+
+  // Exercise common search functions
+  fdt_node_offset_by_compatible(data, 0, "a");
+  fdt_node_offset_by_prop_value(data, 0, "x", "42", 3);
 
   return 0;
 }
-
-#ifdef AFL_STANDALONE
-/* Entry point suitable for direct afl-fuzz invocation */
-int main(int argc, char *argv[]) {
-  uint8_t data[1024 * 1024];
-
-  if (argc != 2) {
-    fprintf(stderr, "missing argument\n");
-    return EXIT_FAILURE;
-  }
-
-  FILE *f = fopen(argv[1], "r");
-  if (!f) {
-    perror("fopen() failed");
-    return EXIT_FAILURE;
-  }
-
-  size_t size = fread(data, 1, sizeof(data), f);
-
-  fclose(f);
-
-  return LLVMFuzzerTestOneInput(data, size);
-}
-#endif
 
