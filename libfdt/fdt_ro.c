@@ -10,6 +10,14 @@
 
 #include "libfdt_internal.h"
 
+/* Check if a buffer contains a nul-terminated string.
+ * Used for checking property values which should be strings.
+ */
+static bool is_nul_string(const char *buf, const size_t buf_len) {
+	return buf_len > 0 && buf[buf_len - 1] == '\0' &&
+		strnlen(buf, buf_len) == buf_len - 1;
+}
+
 static int fdt_nodename_eq_(const void *fdt, int offset,
 			    const char *s, int len)
 {
@@ -528,13 +536,27 @@ uint32_t fdt_get_phandle(const void *fdt, int nodeoffset)
 const char *fdt_get_alias_namelen(const void *fdt,
 				  const char *name, int namelen)
 {
+	const char *prop;
 	int aliasoffset;
+	int prop_len;
 
 	aliasoffset = fdt_path_offset(fdt, "/aliases");
 	if (aliasoffset < 0)
 		return NULL;
 
-	return fdt_getprop_namelen(fdt, aliasoffset, name, namelen, NULL);
+	prop = fdt_getprop_namelen(fdt, aliasoffset, name, namelen, &prop_len);
+	if (prop && !can_assume(VALID_INPUT)) {
+		/* Validate the alias value.  From the devicetree spec v0.3:
+		 * "An alias value is a device path and is encoded as a string.
+		 *  The value representes the full path to a node, ..."
+		 * A full path must start at the root to prevent recursion.
+		 */
+		if (prop_len == 0 || *prop != '/' || !is_nul_string(prop, prop_len)) {
+			prop = NULL;
+		}
+	}
+
+	return prop;
 }
 
 const char *fdt_get_alias(const void *fdt, const char *name)
