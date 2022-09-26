@@ -266,6 +266,9 @@ int fdt_path_offset_namelen(const void *fdt, const char *path, int namelen)
 	if (namelen < 1)
 		return -FDT_ERR_BADPATH;
 
+	if (namelen < 1)
+		return -FDT_ERR_BADPATH;
+
 	/* see if we have an alias */
 	if (*path != '/') {
 		const char *q = memchr(path, '/', end - p);
