@@ -91,3 +91,21 @@ cc_binary_host {
         "util.c",
     ],
 }
+
+cc_binary_host {
+    name: "fdtoverlay",
+    defaults: ["dt_defaults"],
+    srcs: [
+        "fdtoverlay.c",
+        "util.c",
+    ],
+}
+
+cc_binary_host {
+    name: "fdtdump",
+    defaults: ["dt_defaults"],
+    srcs: [
+        "fdtdump.c",
+        "util.c",
+    ],
+}
