@@ -27,3 +27,5 @@ ncscope.*
 .eggs/
 build/
 dist/
+
+/bazel-*
