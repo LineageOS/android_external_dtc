@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a0ead8ba_8aff53af",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 14048
+      },
+      "writtenOn": "2023-08-20T22:43:45Z",
+      "side": 1,
+      "message": "Chain verified building dtimage and dtboimage for zeekr, using merge_dtbs.py.",
+      "revId": "ada0bce7f15317f659deb53ca5cd954228335ca5",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
