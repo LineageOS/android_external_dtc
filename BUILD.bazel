@@ -55,18 +55,25 @@ cc_library(
     deps = [":libfdt"],
 )
 
+UTILS = [
+    "util.c",
+    "util.h",
+    "version_non_gen.h",
+]
+
 cc_binary(
     name = "dtc",
-    srcs = [
+    srcs = UTILS + [
         "checks.c",
         "data.c",
         "dtc.c",
+        "dtc.h",
         "flattree.c",
         "fstree.c",
         "livetree.c",
         "srcpos.c",
+        "srcpos.h",
         "treesource.c",
-        "util.c",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -78,11 +85,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtget",
-    srcs = [
+    srcs = UTILS + [
         "fdtget.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -91,11 +95,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtput",
-    srcs = [
+    srcs = UTILS + [
         "fdtput.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -104,11 +105,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtdump",
-    srcs = [
+    srcs = UTILS + [
         "fdtdump.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -117,11 +115,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtoverlay",
-    srcs = [
+    srcs = UTILS + [
         "fdtoverlay.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
