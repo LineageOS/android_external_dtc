@@ -216,7 +216,8 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
 		return FDT_END;
 	}
 
-	if (!fdt_offset_ptr(fdt, startoffset, offset - startoffset))
+	if (!can_assume(VALID_DTB) && (offset <= startoffset
+	    || !fdt_offset_ptr(fdt, startoffset, offset - startoffset)))
 		return FDT_END; /* premature end */
 
 	*nextoffset = FDT_TAGALIGN(offset);
