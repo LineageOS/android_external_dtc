@@ -21,38 +21,20 @@ COPTS = [
 ]
 
 genrule(
-    name = "lexer",
-    srcs = [
-        "dtc-lexer.l",
-        ":parser",
-    ],
+    name = "dtc_lexer_srcs",
+    srcs = ["dtc-lexer.l"],
     outs = ["dtc-lexer.lex.c"],
-    cmd = "lex -o$@ $(location dtc-lexer.l)",
+    cmd = "lex -o $@ $<",
 )
 
 genrule(
-    name = "parser",
+    name = "dtc_parser_srcs",
     srcs = ["dtc-parser.y"],
     outs = [
         "dtc-parser.c",
         "dtc-parser.h",
     ],
-    cmd = """
-      bison -b dtc-parser -d $(location dtc-parser.y)
-      cp ./*.c $(location dtc-parser.c)
-      cp ./*.h $(location dtc-parser.h)
-    """,
-)
-
-cc_library(
-    name = "dtc_gen",
-    srcs = [
-        ":lexer",
-        ":parser",
-    ],
-    hdrs = glob(["*.h"]),
-    copts = COPTS,
-    deps = [":libfdt"],
+    cmd = "bison -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
 )
 
 UTILS = [
@@ -64,6 +46,8 @@ UTILS = [
 cc_binary(
     name = "dtc",
     srcs = UTILS + [
+        ":dtc_lexer_srcs",
+        ":dtc_parser_srcs",
         "checks.c",
         "data.c",
         "dtc.c",
@@ -77,10 +61,7 @@ cc_binary(
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
-    deps = [
-        ":dtc_gen",
-        ":libfdt",
-    ],
+    deps = [":libfdt"],
 )
 
 cc_binary(
