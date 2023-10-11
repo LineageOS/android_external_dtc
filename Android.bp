@@ -44,14 +44,21 @@ license {
 }
 
 cc_defaults {
-    name: "dt_defaults",
+    name: "dtc_cflags_defaults",
     cflags: [
         "-Wall",
         "-Werror",
         "-Wno-macro-redefined",
-        "-Wno-sign-compare",
         "-Wno-missing-field-initializers",
+        "-Wno-sign-compare",
         "-Wno-unused-parameter",
+    ],
+}
+
+cc_defaults {
+    name: "dt_defaults",
+    defaults: ["dtc_cflags_defaults"],
+    cflags: [
         "-DNO_YAML"
     ],
 
