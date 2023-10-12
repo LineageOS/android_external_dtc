@@ -1,25 +1,21 @@
+COPTS = [
+    "-Wall",
+    "-Werror",
+    "-Wno-macro-redefined",
+    "-Wno-missing-field-initializers",
+    "-Wno-sign-compare",
+    "-Wno-unused-parameter",
+]
+
 cc_library(
     name = "libfdt",
     srcs = glob([
         "libfdt/*.h",
         "libfdt/*.c",
     ]),
-    copts = [
-        "-Werror",
-        "-Wno-macro-redefined",
-        "-Wno-sign-compare",
-    ],
+    copts = COPTS,
     includes = ["libfdt"],
 )
-
-COPTS = [
-    "-Wall",
-    "-Werror",
-    "-Wno-macro-redefined",
-    "-Wno-sign-compare",
-    "-Wno-missing-field-initializers",
-    "-Wno-unused-parameter",
-]
 
 genrule(
     name = "lexer",

@@ -7,12 +7,7 @@ package {
 cc_library {
     name: "libfdt",
     host_supported: true,
-
-    cflags: [
-        "-Werror",
-        "-Wno-macro-redefined",
-        "-Wno-sign-compare",
-    ],
+    defaults: ["dtc_cflags_defaults"],
     srcs: [
         "fdt.c",
         "fdt_check.c",
