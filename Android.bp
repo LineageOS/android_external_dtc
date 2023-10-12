@@ -48,6 +48,7 @@ cc_defaults {
     cflags: [
         "-Wall",
         "-Werror",
+        "-Wno-macro-redefined",
         "-Wno-sign-compare",
         "-Wno-missing-field-initializers",
         "-Wno-unused-parameter",
