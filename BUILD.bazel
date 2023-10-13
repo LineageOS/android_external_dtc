@@ -1,88 +1,84 @@
+COPTS = [
+    "-Wall",
+    "-Werror",
+    "-Wno-macro-redefined",
+    "-Wno-missing-field-initializers",
+    "-Wno-sign-compare",
+    "-Wno-unused-parameter",
+]
+
 cc_library(
     name = "libfdt",
     srcs = glob([
         "libfdt/*.h",
         "libfdt/*.c",
     ]),
-    copts = [
-        "-Werror",
-        "-Wno-macro-redefined",
-        "-Wno-sign-compare",
-    ],
+    copts = COPTS,
     includes = ["libfdt"],
 )
 
-COPTS = [
-    "-Wall",
-    "-Werror",
-    "-Wno-sign-compare",
-    "-Wno-missing-field-initializers",
-    "-Wno-unused-parameter",
-]
-
 genrule(
-    name = "lexer",
-    srcs = [
-        "dtc-lexer.l",
-        ":parser",
-    ],
+    name = "dtc_lexer_srcs",
+    srcs = ["dtc-lexer.l"],
     outs = ["dtc-lexer.lex.c"],
-    cmd = "lex -o$@ $(location dtc-lexer.l)",
+    cmd = "lex -o $@ $<",
 )
 
 genrule(
-    name = "parser",
+    name = "dtc_parser_srcs",
     srcs = ["dtc-parser.y"],
     outs = [
         "dtc-parser.c",
         "dtc-parser.h",
     ],
-    cmd = """
-      bison -b dtc-parser -d $(location dtc-parser.y)
-      cp ./*.c $(location dtc-parser.c)
-      cp ./*.h $(location dtc-parser.h)
-    """,
+    cmd = "bison -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
 )
 
-cc_library(
-    name = "dtc_gen",
+UTILS = [
+    "util.c",
+    "util.h",
+    ":version_gen_header",
+]
+
+genrule(
+    name = "version_gen_header",
+    outs = ["version_gen.h"],
     srcs = [
-        ":lexer",
-        ":parser",
+        "METADATA",
+        "METADATA_version.sed",
+        "version_gen.h.in",
     ],
-    hdrs = glob(["*.h"]),
-    copts = COPTS,
-    deps = [":libfdt"],
+    cmd = """
+      version="$$(sed -f $(location METADATA_version.sed) -n $(location METADATA))-Android-build"
+      sed s/@VCS_TAG@/$${version}/ $(location version_gen.h.in) > $@
+    """,
 )
 
 cc_binary(
     name = "dtc",
-    srcs = [
+    srcs = UTILS + [
+        ":dtc_lexer_srcs",
+        ":dtc_parser_srcs",
         "checks.c",
         "data.c",
         "dtc.c",
+        "dtc.h",
         "flattree.c",
         "fstree.c",
         "livetree.c",
         "srcpos.c",
+        "srcpos.h",
         "treesource.c",
-        "util.c",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
-    deps = [
-        ":dtc_gen",
-        ":libfdt",
-    ],
+    deps = [":libfdt"],
 )
 
 cc_binary(
     name = "fdtget",
-    srcs = [
+    srcs = UTILS + [
         "fdtget.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -91,11 +87,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtput",
-    srcs = [
+    srcs = UTILS + [
         "fdtput.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -104,11 +97,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtdump",
-    srcs = [
+    srcs = UTILS + [
         "fdtdump.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
@@ -117,11 +107,8 @@ cc_binary(
 
 cc_binary(
     name = "fdtoverlay",
-    srcs = [
+    srcs = UTILS + [
         "fdtoverlay.c",
-        "util.c",
-        "util.h",
-        "version_non_gen.h",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
