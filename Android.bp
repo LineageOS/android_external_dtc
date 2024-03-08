@@ -44,16 +44,25 @@ license {
 }
 
 cc_defaults {
-    name: "dt_defaults",
+    name: "dtc_cflags_defaults",
     cflags: [
         "-Wall",
         "-Werror",
-        "-Wno-sign-compare",
+        "-Wno-macro-redefined",
         "-Wno-missing-field-initializers",
+        "-Wno-sign-compare",
         "-Wno-unused-parameter",
+    ],
+}
+
+cc_defaults {
+    name: "dt_defaults",
+    defaults: ["dtc_cflags_defaults"],
+    cflags: [
         "-DNO_YAML"
     ],
 
+    generated_headers: ["dtc_version_gen.h"],
     shared_libs: ["libfdt"],
 
     stl: "none",
@@ -126,4 +135,18 @@ cc_binary_host {
         "fdtdump.c",
         "util.c",
     ],
+}
+
+genrule {
+    name: "dtc_version_gen.h",
+    out: ["version_gen.h"],
+    srcs: ["version_gen.h.in"],
+    tool_files: [
+        "METADATA",
+        "METADATA_version.sed",
+    ],
+    cmd: "version=$$("
+       +     "sed -f $(location METADATA_version.sed) -n $(location METADATA)"
+       + ")-Android-build;"
+       + "sed s/@VCS_TAG@/$${version}/ $(in) > $(out)",
 }
