@@ -100,6 +100,10 @@ cc_binary {
     name: "dtc_static",
     defaults: ["dtc_defaults"],
     static_executable: true,
+    // TODO(b/373646042): this is a workaround for failed link
+    sanitize: {
+        hwaddress: false,
+    },
     installable: false, // test only
 }
 
@@ -171,4 +175,10 @@ genrule {
         "sed -f $(location METADATA_version.sed) -n $(location METADATA)" +
         ")-Android-build;" +
         "sed s/@VCS_TAG@/$${version}/ $(in) > $(out)",
+}
+
+dirgroup {
+    name: "trusty_dirgroup_external_dtc",
+    dirs: ["."],
+    visibility: ["//trusty/vendor/google/aosp/scripts"],
 }

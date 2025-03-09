@@ -4,9 +4,8 @@ package {
     default_applicable_licenses: ["external_dtc_libfdt_license"],
 }
 
-cc_library {
-    name: "libfdt",
-    host_supported: true,
+cc_defaults {
+    name: "libfdt_defaults",
     defaults: ["dtc_cflags_defaults"],
     srcs: [
         "fdt.c",
@@ -22,11 +21,24 @@ cc_library {
         "acpi.c",
     ],
     export_include_dirs: ["."],
+}
+
+cc_library {
+    name: "libfdt",
+    host_supported: true,
+    defaults: ["libfdt_defaults"],
     apex_available: [
         "//apex_available:platform",
         "com.android.virt",
     ],
+}
 
+cc_library {
+    name: "libfdt_baremetal",
+    defaults: [
+        "cc_baremetal_defaults",
+        "libfdt_defaults",
+    ],
     // b/336916369: This library gets linked into a rust rlib.  Disable LTO
     // until cross-language lto is supported.
     lto: {
