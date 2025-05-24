@@ -710,13 +710,16 @@ static int copy_node(void *fdt, void *fdto, int fdt_parent,
 	}
 
 	fdt_for_each_property_offset(prop, fdto, fdto_child) {
-		int ret;
+		int ret, fdt_len = 0;
 		const char *value, *pname;
 		void *p;
 
 		value = fdt_getprop_by_offset(fdto, prop, &pname, &len);
 		if (!value)
 			return len;
+
+		if (fdt_getprop(fdt, parent, pname, &fdt_len))
+			len += fdt_len;
 
 		ret = fdt_setprop_placeholder(fdt, parent, pname, len, &p);
 		vvdprintf
@@ -725,6 +728,13 @@ static int copy_node(void *fdt, void *fdto, int fdt_parent,
 		     pname, value, ret);
 		if (ret)
 			return ret;
+
+		if (fdt_len > 0) {
+			p = (char *)p + fdt_len;
+			len -= fdt_len;
+			vvdprintf("%s: fdto-prop(%s): Copy only new values\n",
+				  __func__, pname);
+		}
 
 		memcpy(p, value, len);
 	}
