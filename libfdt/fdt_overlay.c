@@ -1275,7 +1275,7 @@ next_node:
 	return 0;
 }
 
-static int find_add_subnode(void *fdt, int parent_off, char *node_name)
+static int find_add_subnode(void *fdt, int parent_off, const char *node_name)
 {
 	int offset;
 
@@ -1287,7 +1287,7 @@ static int find_add_subnode(void *fdt, int parent_off, char *node_name)
 	return offset;
 }
 
-static int prop_exists_in_node(void *fdt, char *path, const char *prop_name)
+static int prop_exists_in_node(void *fdt, const char *path, const char *prop_name)
 {
 	int offset;
 	const void *val;
@@ -1554,7 +1554,7 @@ static int add_to_fixups(void *fdt, char *v, const char *label)
 	return 0;
 }
 
-static int fdt_find_add_node(void *fdt, int parent_off, char *node)
+static int fdt_find_add_node(void *fdt, int parent_off, const char *node)
 {
 	int offset;
 
