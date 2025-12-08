@@ -260,11 +260,6 @@ devicetree:
 
 			$$ = $1;
 		}
-	| /* empty */
-		{
-			/* build empty node */
-			$$ = name_node(build_node(NULL, NULL, NULL), "");
-		}
 	;
 
 nodedef:

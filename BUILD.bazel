@@ -1,3 +1,6 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
 COPTS = [
     "-Wall",
     "-Werror",
@@ -21,7 +24,8 @@ genrule(
     name = "dtc_lexer_srcs",
     srcs = ["dtc-lexer.l"],
     outs = ["dtc-lexer.lex.c"],
-    cmd = "lex -o $@ $<",
+    cmd = "export PATH= ; $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex) -o $@ $<",
+    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:flex"],
 )
 
 genrule(
@@ -31,7 +35,10 @@ genrule(
         "dtc-parser.c",
         "dtc-parser.h",
     ],
-    cmd = "bison -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
+    cmd = "export PATH= ; $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison) -d -o $(location dtc-parser.c) $(location dtc-parser.y)",
+    tools = [
+        "@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:bison",
+    ],
 )
 
 UTILS = [
@@ -42,23 +49,27 @@ UTILS = [
 
 genrule(
     name = "version_gen_header",
-    outs = ["version_gen.h"],
     srcs = [
         "METADATA",
         "METADATA_version.sed",
         "version_gen.h.in",
     ],
+    outs = ["version_gen.h"],
     cmd = """
-      version="$$(sed -f $(location METADATA_version.sed) -n $(location METADATA))-Android-build"
-      sed s/@VCS_TAG@/$${version}/ $(location version_gen.h.in) > $@
+        # Avoid accessing host tools.
+        export PATH=
+        version="$$($(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed) \\
+            -f $(location METADATA_version.sed) \\
+            -n $(location METADATA))-Android-build"
+        $(execpath @kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed) \\
+            s/@VCS_TAG@/$${version}/ $(location version_gen.h.in) > $@
     """,
+    tools = ["@kleaf//build/kernel/kleaf/bootstrap_hermetic_tools:sed"],
 )
 
 cc_binary(
     name = "dtc",
     srcs = UTILS + [
-        ":dtc_lexer_srcs",
-        ":dtc_parser_srcs",
         "checks.c",
         "data.c",
         "dtc.c",
@@ -69,9 +80,14 @@ cc_binary(
         "srcpos.c",
         "srcpos.h",
         "treesource.c",
+        ":dtc_lexer_srcs",
+        ":dtc_parser_srcs",
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
+    visibility = [
+        "@kleaf//build/kernel:__subpackages__",
+    ],
     deps = [":libfdt"],
 )
 
@@ -112,5 +128,8 @@ cc_binary(
     ],
     copts = COPTS,
     defines = ["NO_YAML"],
+    visibility = [
+        "@kleaf//build/kernel:__subpackages__",
+    ],
     deps = [":libfdt"],
 )

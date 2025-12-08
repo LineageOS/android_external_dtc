@@ -113,6 +113,12 @@ cc_binary_host {
 }
 
 cc_binary_host {
+    name: "dtc_host_static",
+    defaults: ["dtc_defaults"],
+    static_executable: true,
+}
+
+cc_binary_host {
     name: "fdtget",
     defaults: ["dt_defaults"],
     srcs: [
